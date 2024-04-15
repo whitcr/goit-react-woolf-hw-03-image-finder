@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import Searchbar from './SearchBar/SearchBar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
+import { fetchImg } from './api/api.js';
 import './App.css';
-
-const API_KEY = '42206478-925606497870cbb45f2a85a6e';
-const API_URL = 'https://pixabay.com/api/';
 
 export class App extends Component {
   state = {
@@ -18,6 +15,7 @@ export class App extends Component {
     isLoading: false,
     showModal: false,
     largeImageURL: '',
+    showButton: false,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -31,28 +29,19 @@ export class App extends Component {
 
   fetchImages = () => {
     const { query, currentPage } = this.state;
+    this.setState({ isLoading: true, showButton: false });
 
-    if (query === '') {
-      return;
-    }
-
-    this.setState({ isLoading: true });
-
-    axios
-      .get(
-        `${API_URL}?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-      )
-      .then(response => {
-        const newImages = response.data.hits;
+    fetchImg(query, currentPage)
+      .then(newImages => {
         this.setState(prevState => ({
-          images: [...prevState.images, ...newImages],
-          isLoading: false,
+          images: [...prevState.images, ...newImages.hits],
+          showButton: currentPage < Math.ceil(newImages.totalHits / 12),
         }));
       })
       .catch(error => {
         console.log(error);
-        this.setState({ isLoading: false });
-      });
+      })
+      .finally(() => this.setState({ isLoading: false }));
   };
 
   handleSearchSubmit = newQuery => {
@@ -83,14 +72,15 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, showModal, largeImageURL } = this.state;
+    const { images, isLoading, showModal, largeImageURL, showButton } =
+      this.state;
 
     return (
       <div className="App">
         <Searchbar onSubmit={this.handleSearchSubmit} />
         {isLoading && <Loader />}
         <ImageGallery images={images} onImageClick={this.handleImageClick} />
-        {images.length > 0 && <Button onClick={this.handleLoadMore} />}
+        {showButton && <Button onClick={this.handleLoadMore} />}
         {showModal && (
           <Modal
             largeImageURL={largeImageURL}
