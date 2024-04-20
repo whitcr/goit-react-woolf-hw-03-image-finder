@@ -8,7 +8,7 @@ const Searchbar = ({ onSubmit }) => {
   const handleSubmit = e => {
     e.preventDefault();
     onSubmit(query);
-    setQuery('');
+    setQuery(' ');
   };
 
   return (
