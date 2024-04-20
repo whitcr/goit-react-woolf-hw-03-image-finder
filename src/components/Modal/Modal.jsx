@@ -23,7 +23,7 @@ function Modal({ largeImageURL, onClose }) {
   return (
     <div className="Overlay" onClick={handleOverlayClick}>
       <div className="Modal">
-        <img src={largeImageURL} alt="" />
+        <img src={largeImageURL} alt=" "/>
       </div>
     </div>
   );
