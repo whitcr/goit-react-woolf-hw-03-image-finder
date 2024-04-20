@@ -33,10 +33,23 @@ export const App = () => {
   };
 
   useEffect(() => {
+    const fetchImages = () => {
+      setIsLoading(true);
+      setShowButton(false);
+
+      fetchImg(query, currentPage)
+        .then(newImages => {
+          setImages(prev => [...prev, ...newImages.hits]);
+          setShowButton(currentPage < Math.ceil(newImages.totalHits / 12));
+        })
+        .catch(error => console.log(error))
+        .finally(() => setIsLoading(false));
+    };
+
     if (initialQuery !== query || initialPage !== currentPage) {
       fetchImages();
     }
-  }, [currentPage, initialPage, initialQuery, query]);
+  }, [currentPage, initialPage, initialQuery, query, fetchImages]);
 
   const handleSearchSubmit = newQuery => {
     setQuery(newQuery);
