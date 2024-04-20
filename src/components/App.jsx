@@ -19,37 +19,23 @@ export const App = () => {
   const [largeImageURL, setLargeImageURL] = useState('');
   const [showButton, setShowButton] = useState(false);
 
-  const fetchImages = () => {
-    setIsLoading(true);
-    setShowButton(false);
-
-    fetchImg(query, currentPage)
-      .then(newImages => {
-        setImages(prev => [...prev, ...newImages.hits]);
-        setShowButton(currentPage < Math.ceil(newImages.totalHits / 12));
-      })
-      .catch(error => console.log(error))
-      .finally(() => setIsLoading(false));
-  };
-
   useEffect(() => {
-    const fetchImages = () => {
-      setIsLoading(true);
-      setShowButton(false);
-
-      fetchImg(query, currentPage)
-        .then(newImages => {
-          setImages(prev => [...prev, ...newImages.hits]);
-          setShowButton(currentPage < Math.ceil(newImages.totalHits / 12));
-        })
-        .catch(error => console.log(error))
-        .finally(() => setIsLoading(false));
-    };
-
     if (initialQuery !== query || initialPage !== currentPage) {
+      const fetchImages = () => {
+        setIsLoading(true);
+        setShowButton(false);
+
+        fetchImg(query, currentPage)
+          .then(newImages => {
+            setImages(prev => [...prev, ...newImages.hits]);
+            setShowButton(currentPage < Math.ceil(newImages.totalHits / 12));
+          })
+          .catch(error => console.log(error))
+          .finally(() => setIsLoading(false));
+      };
       fetchImages();
     }
-  }, [currentPage, initialPage, initialQuery, query, fetchImages]);
+  }, [currentPage, initialPage, initialQuery, query]);
 
   const handleSearchSubmit = newQuery => {
     setQuery(newQuery);
