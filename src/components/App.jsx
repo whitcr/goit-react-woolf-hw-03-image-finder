@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import Searchbar from './SearchBar/SearchBar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
@@ -7,87 +7,65 @@ import Modal from './Modal/Modal';
 import { fetchImg } from './api/api.js';
 import './App.css';
 
-export class App extends Component {
-  state = {
-    images: [],
-    currentPage: 1,
-    query: '',
-    isLoading: false,
-    showModal: false,
-    largeImageURL: '',
-    showButton: false,
-  };
+export const App = () => {
+  const initialQuery = '';
+  const initialPage = 1;
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.fetchImages();
-    }
-  }
+  const [images, setImages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [showButton, setShowButton] = useState(false);
 
-  fetchImages = () => {
-    const { query, currentPage } = this.state;
-    this.setState({ isLoading: true, showButton: false });
+  const fetchImages = () => {
+    setIsLoading(true);
+    setShowButton(false);
 
     fetchImg(query, currentPage)
       .then(newImages => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...newImages.hits],
-          showButton: currentPage < Math.ceil(newImages.totalHits / 12),
-        }));
+        setImages(prev => [...prev, ...newImages.hits]);
+        setShowButton(currentPage < Math.ceil(newImages.totalHits / 12));
       })
-      .catch(error => {
-        console.log(error);
-      })
-      .finally(() => this.setState({ isLoading: false }));
+      .catch(error => console.log(error))
+      .finally(() => setIsLoading(false));
   };
 
-  handleSearchSubmit = newQuery => {
-    this.setState({
-      query: newQuery,
-      images: [],
-      currentPage: 1,
-    });
+  useEffect(() => {
+    if (initialQuery !== query || initialPage !== currentPage) {
+      fetchImages();
+    }
+  }, [currentPage, initialPage, initialQuery, query]);
+
+  const handleSearchSubmit = newQuery => {
+    setQuery(newQuery);
+    setImages([]);
+    setCurrentPage(1);
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      currentPage: prevState.currentPage + 1,
-    }));
+  const handleLoadMore = () => {
+    setCurrentPage(prevState => prevState.currentPage + 1);
   };
 
-  handleImageClick = largeImageURL => {
-    this.setState({
-      largeImageURL,
-      showModal: true,
-    });
+  const handleImageClick = largeImageURL => {
+    setLargeImageURL(largeImageURL);
+    setShowModal(true);
   };
 
-  handleModalClose = () => {
-    this.setState({
-      showModal: false,
-    });
+  const handleModalClose = () => {
+    setShowModal(false);
   };
 
-  render() {
-    const { images, isLoading, showModal, largeImageURL, showButton } =
-      this.state;
-
-    return (
-      <div className="App">
-        <Searchbar onSubmit={this.handleSearchSubmit} />
-        {isLoading && <Loader />}
-        <ImageGallery images={images} onImageClick={this.handleImageClick} />
-        {showButton && <Button onClick={this.handleLoadMore} />}
-        {showModal && (
-          <Modal
-            largeImageURL={largeImageURL}
-            onClose={this.handleModalClose}
-          />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div className="App">
+      <Searchbar onSubmit={handleSearchSubmit} />
+      {isLoading && <Loader />}
+      <ImageGallery images={images} onImageClick={handleImageClick} />
+      {showButton && <Button onClick={handleLoadMore} />}
+      {showModal && (
+        <Modal largeImageURL={largeImageURL} onClose={handleModalClose} />
+      )}
+    </div>
+  );
+};
